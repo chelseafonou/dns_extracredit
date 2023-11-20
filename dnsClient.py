@@ -2,7 +2,6 @@ import argparse
 import socket
 import struct
 
-
 def dns_query(type, name, server):
     # Create a UDP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -85,7 +84,6 @@ def dns_query(type, name, server):
             print(f'{name} has IPv6 address {ipv6}')
             return ipv6
 
-
 def parse_name(data, offset):
     name_parts = []
     while True:
@@ -101,11 +99,10 @@ def parse_name(data, offset):
             break
         else:
             # Label
-            label = data[offset:offset + length].decode('utf-8')
+            label = data[offset:offset + length]
             offset += length
             name_parts.append(label)
-    return '.'.join(name_parts)
-
+    return b'.'.join(name_parts)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Send a DNS query and parse the reply.')
