@@ -62,14 +62,23 @@ def dns_query(type, name, server):
     response_answer = data[12 + len(question):]
     offset = 0
     for _ in range(ANCOUNT):
+        if offset >= len(response_answer):
+            break  # Ensure we don't go out of range
+
         name = parse_name(data, offset)
         offset += len(name) + 2  # 2 bytes for QTYPE and QCLASS
 
         # Parse the type, class, TTL, and RDLENGTH
+        if offset + 10 > len(response_answer):
+            break  # Ensure we don't go out of range
+
         type, cls, ttl, rdlength = struct.unpack('!HHIH', response_answer[offset:offset + 10])
         offset += 10
 
         # Parse the RDATA
+        if offset + rdlength > len(response_answer):
+            break  # Ensure we don't go out of range
+
         rdata = response_answer[offset:offset + rdlength]
         offset += rdlength
 
@@ -87,19 +96,28 @@ def dns_query(type, name, server):
 def parse_name(data, offset):
     name_parts = []
     while True:
+        if offset >= len(data):
+            break  # Ensure we don't go out of range
+
         length = data[offset]
         offset += 1
         if length == 0:
             break
         elif length & 0xc0 == 0xc0:
             # Pointer
+            if offset + 1 >= len(data):
+                break  # Ensure we don't go out of range
+
             pointer = struct.unpack('!H', data[offset - 1:offset + 1])[0] & 0x3fff
             offset += 1
             name_parts.append(parse_name(data, pointer))
             break
         else:
             # Label
-            label = data[offset:offset + length]
+            if offset + length > len(data):
+                break  # Ensure we don't go out of range
+
+            label = data[offset:offset + length].decode('utf-8')
             offset += length
             name_parts.append(label)
     return b'.'.join(name_parts)
