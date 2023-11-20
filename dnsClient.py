@@ -117,10 +117,11 @@ def parse_name(data, offset):
             if offset + length > len(data):
                 break  # Ensure we don't go out of range
 
-            label = data[offset:offset + length].decode('utf-8')
+            label = data[offset:offset + length].decode('utf-8', errors='replace')
             offset += length
             name_parts.append(label)
     return b'.'.join(name_parts)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Send a DNS query and parse the reply.')
